@@ -1,0 +1,42 @@
+@model Instagram.ViewModels.EditProfileViewModel
+
+@{
+    ViewBag.Title = "Редактирование профиля";
+}
+
+<h2>Редактировать профиль</h2>
+
+<form asp-action="EditProfile" method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+
+    <div class="mb-3">
+        <label asp-for="Name" class="form-label"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="UserInfo" class="form-label"></label>
+        <textarea asp-for="UserInfo" class="form-control"></textarea>
+        <span asp-validation-for="UserInfo" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Gender" class="form-label"></label>
+        <input asp-for="Gender" class="form-control" />
+        <span asp-validation-for="Gender" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="ProfilePicture" class="form-label"></label>
+        <input asp-for="ProfilePicture" type="file" class="form-control" />
+        <span asp-validation-for="ProfilePicture" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-success">Сохранить</button>
+    <a asp-action="MyProfile" class="btn btn-secondary">Отмена</a>
+</form>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
