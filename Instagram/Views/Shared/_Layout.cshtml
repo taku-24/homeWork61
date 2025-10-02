@@ -1,0 +1,62 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>@ViewData["Title"] - Instagram</title>
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
+    <link rel="stylesheet" href="~/Instagram.styles.css" asp-append-version="true"/>
+</head>
+<body>
+<header class="navbar navbar-light bg-white border-bottom px-3">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
+        
+        <a class="navbar-brand fw-bold" asp-controller="Home" asp-action="Index">
+            Instagram
+        </a>
+        
+        <form asp-controller="Users" asp-action="Search" method="get" class="d-none d-md-block">
+            <input type="text" name="q" class="form-control" placeholder="Поиск" style="width:250px;" />
+        </form>
+        
+        <div class="d-flex align-items-center">
+            @if (User.Identity.IsAuthenticated)
+            {
+                var userManager = Context.RequestServices.GetService<UserManager<Instagram.Models.User>>();
+                var me = await userManager.GetUserAsync(User);
+
+                if (me != null)
+                {
+                    <a asp-controller="Users" asp-action="MyProfile" class="btn btn-light p-0 me-2">
+                        <img src="@me.ProfilePicturePath"
+                             alt="avatar"
+                             style="width:40px; height:40px; border-radius:50%; object-fit:cover;" />
+                    </a>
+                }
+                
+                <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-outline-danger">Выйти</button>
+                </form>
+            }
+            else
+            {
+                <a asp-controller="Account" asp-action="Login" class="btn btn-primary me-2">Войти</a>
+                <a asp-controller="Account" asp-action="Register" class="btn btn-success">Регистрация</a>
+            }
+        </div>
+    </div>
+</header>
+
+<main class="container mt-3">
+    @RenderBody()
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+@RenderSection("Scripts", required: false)
+</body>
+</html>
