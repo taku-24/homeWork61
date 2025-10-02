@@ -1,0 +1,25 @@
+@model IEnumerable<Instagram.Models.User>
+
+@{
+    ViewData["Title"] = "Поиск пользователей";
+}
+
+<h2>Поиск пользователей</h2>
+
+@if (Model != null && Model.Any())
+{
+    <ul class="list-group">
+        @foreach (var u in Model)
+        {
+            <li class="list-group-item d-flex align-items-center">
+                <img src="@u.ProfilePicturePath" alt="avatar"
+                     style="width:40px; height:40px; border-radius:50%; object-fit:cover; margin-right:10px;" />
+                <a asp-controller="Users" asp-action="Profile" asp-route-id="@u.Id">@u.UserName</a>
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p class="text-muted">Ничего не найдено.</p>
+}
