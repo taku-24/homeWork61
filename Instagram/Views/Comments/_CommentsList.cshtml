@@ -1,0 +1,8 @@
+@model List<Instagram.Models.Comment>
+
+<ul>
+    @foreach (var c in Model)
+    {
+        <li><b>@c.User?.UserName:</b> @c.Content</li>
+    }
+</ul>
