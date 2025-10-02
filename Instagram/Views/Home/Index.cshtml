@@ -1,0 +1,62 @@
+﻿@model IEnumerable<Instagram.Models.Post>
+
+@{
+    ViewData["Title"] = "Лента";
+}
+
+@foreach (var post in Model)
+{
+    <div class="d-flex justify-content-center">
+        <div class="card post-card mb-4 shadow-sm">
+            <div class="card-header d-flex align-items-center bg-white">
+                <img src="@post.User?.ProfilePicturePath" alt="avatar"
+                     style="width:40px; height:40px; border-radius:50%; margin-right:10px;" />
+                <strong>@post.User?.UserName</strong>
+            </div>
+            
+            <img src="@post.ImagePath" alt="post" class="post-img" />
+
+            <div class="card-body">
+                <p>@post.Description</p>
+                <p><small>@post.CreatedAt.ToLocalTime()</small></p>
+
+                <form asp-controller="Likes" asp-action="Toggle" method="post" class="d-inline">
+                    <input type="hidden" name="postId" value="@post.Id" />
+                    <button type="submit" class="btn btn-link">❤️ @post.LikesCount</button>
+                </form>
+                
+                <div class="comments mt-3">
+                    <h6>Комментарии:</h6>
+                    @if (post.Comments != null && post.Comments.Any())
+                    {
+                        <ul>
+                            @foreach (var c in post.Comments
+                                              .OrderByDescending(c => c.CreatedAt)
+                                              .Take(3))
+                            {
+                                <li><b>@c.User?.UserName:</b> @c.Content</li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="text-muted">Нет комментариев</p>
+                    }
+                    
+                    <a asp-controller="Posts" asp-action="Details" asp-route-id="@post.Id" class="btn btn-sm btn-link">
+                        💬 Все комментарии (@post.CommentsCount)
+                    </a>
+                </div>
+                
+                <form asp-controller="Comments" asp-action="Add" method="post" class="mt-2">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="postId" value="@post.Id" />
+                    <textarea name="content" class="form-control" rows="1" placeholder="Оставьте комментарий..."></textarea>
+                    <button type="submit" class="btn btn-primary btn-sm mt-1">Отправить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+
