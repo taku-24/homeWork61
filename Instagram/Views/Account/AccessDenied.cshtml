@@ -1,0 +1,9 @@
+@{
+    ViewBag.Title = "Доступ запрещён";
+}
+<h2>Доступ запрещён</h2>
+<p>У вас нет прав для доступа к этой странице.</p>
+@if(!string.IsNullOrEmpty(ViewBag.ReturnUrl))
+{
+    <p><a href="@ViewBag.ReturnUrl">Вернуться</a></p>
+}
