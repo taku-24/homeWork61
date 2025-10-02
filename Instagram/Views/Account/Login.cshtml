@@ -1,0 +1,38 @@
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@model Instagram.ViewModels.LoginViewModel
+
+@{
+    ViewBag.Title = "Вход";
+}
+<h2>Вход в приложение</h2>
+
+<form method="post" asp-controller="Account" asp-action="Login"
+      asp-route-returnUrl="@Model?.ReturnUrl">
+
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div>
+        <label asp-for="Login"></label><br />
+        <input asp-for="Login" class="form-control" />
+        <span asp-validation-for="Login" class="text-danger"></span>
+    </div>
+
+    <div>
+        <label asp-for="Password"></label><br />
+        <input asp-for="Password" type="password" class="form-control" />
+        <span asp-validation-for="Password" class="text-danger"></span>
+    </div>
+
+    <div>
+        <label asp-for="RememberMe"></label>
+        <input asp-for="RememberMe" type="checkbox" />
+    </div>
+
+    <div>
+        <input type="submit" value="Войти" class="btn btn-primary" />
+    </div>
+</form>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
