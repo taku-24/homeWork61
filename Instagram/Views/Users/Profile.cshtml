@@ -1,0 +1,61 @@
+@model Instagram.Models.User
+
+@{
+    ViewBag.Title = "Профиль " + Model.UserName;
+    var posts = ViewBag.Posts as IEnumerable<Instagram.Models.Post>;
+}
+
+<div class="d-flex justify-content-center">
+    <div class="card post-card shadow-sm">
+        <div class="card-body text-center">
+            <img src="@Model.ProfilePicturePath" alt="avatar"
+                 style="width:120px; height:120px; border-radius:50%; object-fit:cover;" />
+
+            <h3 class="mt-3">@Model.UserName</h3>
+            <p><b>Имя:</b> @Model.Name</p>
+            <p><b>Инфо:</b> @Model.UserInfo</p>
+
+            <p>
+                <b>Постов:</b> @Model.PostsCount |
+                <b>Подписчики:</b> @Model.FollowersCount |
+                <b>Подписки:</b> @Model.FollowingCount
+            </p>
+
+            @if (User.Identity.IsAuthenticated && User.Identity.Name != Model.UserName)
+            {
+                <form asp-controller="Follow" asp-action="FollowUser" method="post" class="d-inline">
+                    <input type="hidden" name="userId" value="@Model.Id" />
+                    <button type="submit" class="btn btn-success">Подписаться</button>
+                </form>
+
+                <form asp-controller="Follow" asp-action="UnfollowUser" method="post" class="d-inline">
+                    <input type="hidden" name="userId" value="@Model.Id" />
+                    <button type="submit" class="btn btn-danger">Отписаться</button>
+                </form>
+            }
+        </div>
+
+        <hr />
+
+        <div class="card-body">
+            <h4>Публикации</h4>
+            @if (posts != null && posts.Any())
+            {
+                <div class="row">
+                    @foreach (var post in posts)
+                    {
+                        <div class="col-md-4 mb-3">
+                            <a asp-controller="Posts" asp-action="Details" asp-route-id="@post.Id">
+                                <img src="@post.ImagePath" class="img-fluid rounded" style="height:200px; object-fit:cover;" />
+                            </a>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="text-muted">У пользователя пока нет публикаций.</p>
+            }
+        </div>
+    </div>
+</div>
