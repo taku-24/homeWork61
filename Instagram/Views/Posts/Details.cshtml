@@ -1,0 +1,49 @@
+@model Instagram.Models.Post
+
+<h2 class="text-center mb-4">Публикация</h2>
+
+<div class="d-flex justify-content-center">
+    <div class="card post-card shadow-sm">
+        <!-- Картинка -->
+        <img src="@Model.ImagePath" alt="Post image" class="post-img" />
+
+        <div class="card-body">
+            <p><b>@Model.User?.UserName</b></p>
+            <p>@Model.Description</p>
+            <p><small>Опубликовано: @Model.CreatedAt.ToLocalTime()</small></p>
+
+            <!-- Лайк -->
+            <form asp-controller="Likes" asp-action="Toggle" method="post" class="mt-2">
+                <input type="hidden" name="postId" value="@Model.Id" />
+                <button type="submit" class="btn btn-outline-danger">❤️ Лайк</button>
+                <span>@Model.LikesCount</span>
+            </form>
+
+            <p class="mt-2">💬 @Model.CommentsCount</p>
+
+            <h5>Комментарии</h5>
+            @if (Model.Comments != null && Model.Comments.Any())
+            {
+                <ul>
+                    @foreach (var c in Model.Comments.OrderByDescending(c => c.CreatedAt))
+                    {
+                        <li><b>@c.User?.UserName:</b> @c.Content</li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p class="text-muted">Пока нет комментариев.</p>
+            }
+            
+            <form asp-controller="Comments" asp-action="Add" method="post" class="mt-3">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="postId" value="@Model.Id" />
+                <textarea name="content" class="form-control" placeholder="Оставьте комментарий"></textarea>
+                <button type="submit" class="btn btn-primary mt-2">Отправить</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+
