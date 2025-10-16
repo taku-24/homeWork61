@@ -23,15 +23,12 @@
 
             @if (User.Identity.IsAuthenticated && User.Identity.Name != Model.UserName)
             {
-                <form asp-controller="Follow" asp-action="FollowUser" method="post" class="d-inline">
-                    <input type="hidden" name="userId" value="@Model.Id" />
-                    <button type="submit" class="btn btn-success">Подписаться</button>
+                <form id="followForm">
+                    @Html.AntiForgeryToken()
+                    <button id="followBtn" type="button" class="btn btn-success"
+                            onclick="followUser(@Model.Id)">Подписаться</button>
                 </form>
 
-                <form asp-controller="Follow" asp-action="UnfollowUser" method="post" class="d-inline">
-                    <input type="hidden" name="userId" value="@Model.Id" />
-                    <button type="submit" class="btn btn-danger">Отписаться</button>
-                </form>
             }
         </div>
 
@@ -59,3 +56,44 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        function getToken() {
+            const el = document.querySelector('input[name="__RequestVerificationToken"]');
+            return el ? el.value : '';
+        }
+
+        function followUser(userId) {
+            $.ajax({
+                url: '/Follow/FollowUser',
+                type: 'POST',
+                data: { userId, __RequestVerificationToken: getToken() },
+                success: function(res){
+                    if(res.success){
+                        $('#followBtn')
+                            .removeClass('btn-success').addClass('btn-danger')
+                            .text('Отписаться')
+                            .attr('onclick', `unfollowUser(${userId})`);
+                    } else { alert(res.message); }
+                }
+            });
+        }
+
+        function unfollowUser(userId) {
+            $.ajax({
+                url: '/Follow/UnfollowUser',
+                type: 'POST',
+                data: { userId, __RequestVerificationToken: getToken() },
+                success: function(res){
+                    if(res.success){
+                        $('#followBtn')
+                            .removeClass('btn-danger').addClass('btn-success')
+                            .text('Подписаться')
+                            .attr('onclick', `followUser(${userId})`);
+                    } else { alert(res.message); }
+                }
+            });
+        }
+    </script>
+}
