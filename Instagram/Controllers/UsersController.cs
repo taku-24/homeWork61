@@ -10,12 +10,12 @@ namespace Instagram.Controllers;
 [Authorize]
 public class UsersController : Controller
 {
-    private readonly InstagramContext _ctx;
+    private readonly InstagramContext _context;
     private readonly UserManager<User> _userManager;
 
-    public UsersController(InstagramContext ctx, UserManager<User> userManager)
+    public UsersController(InstagramContext context, UserManager<User> userManager)
     {
-        _ctx = ctx;
+        _context = context;
         _userManager = userManager;
     }
 
@@ -28,7 +28,7 @@ public class UsersController : Controller
             return View(new List<User>());
         }
 
-        var users = _ctx.Users
+        var users = _context.Users
             .Where(u => u.UserName.Contains(q) || u.Name.Contains(q))
             .ToList();
 
@@ -39,7 +39,7 @@ public class UsersController : Controller
     [HttpGet]
     public async Task<IActionResult> Profile(int id)
     {
-        var user = await _ctx.Users
+        var user = await _context.Users
             .Include(u => u.Posts)
             .FirstOrDefaultAsync(u => u.Id == id);
 
@@ -55,7 +55,7 @@ public class UsersController : Controller
         var me = await _userManager.GetUserAsync(User);
         if (me == null) return RedirectToAction("Login", "Account");
 
-        var loadedUser = await _ctx.Users
+        var loadedUser = await _context.Users
             .Include(u => u.Posts)
             .FirstOrDefaultAsync(u => u.Id == me.Id);
 
@@ -109,8 +109,8 @@ public class UsersController : Controller
                 me.ProfilePicturePath = "/images/" + fileName;
             }
 
-            _ctx.Update(me);
-            await _ctx.SaveChangesAsync();
+            _context.Update(me);
+            await _context.SaveChangesAsync();
 
             return RedirectToAction("MyProfile");
         }
