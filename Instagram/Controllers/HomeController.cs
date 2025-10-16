@@ -10,19 +10,24 @@ namespace Instagram.Controllers;
 [Authorize]
 public class HomeController : Controller
 {
-    private readonly InstagramContext _ctx;
-    private readonly UserManager<User> _um;
-    public HomeController(InstagramContext ctx, UserManager<User> um) { _ctx = ctx; _um = um; }
+    private readonly InstagramContext _context;
+    private readonly UserManager<User> _userManager;
+
+    public HomeController(InstagramContext context, UserManager<User> userManager)
+    {
+        _context = context; 
+        _userManager = userManager;
+    }
 
     public async Task<IActionResult> Index()
     {
-        var me = await _um.GetUserAsync(User);
-        var followingIds = await _ctx.Follows
+        var me = await _userManager.GetUserAsync(User);
+        var followingIds = await _context.Follows
             .Where(f => f.FollowerId == me.Id)
             .Select(f => f.FollowingId)
             .ToListAsync();
 
-        var feed = await _ctx.Posts
+        var feed = await _context.Posts
             .Include(p => p.User)
             .Include(p => p.Comments).ThenInclude(c => c.User)
             .Where(p => followingIds.Contains(p.UserId))
