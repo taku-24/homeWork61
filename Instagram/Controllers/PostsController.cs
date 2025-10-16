@@ -7,12 +7,13 @@ using Instagram.Models;
 [Authorize]
 public class PostsController : Controller
 {
-    private readonly InstagramContext _ctx;
-    private readonly UserManager<User> _um;
+    private readonly InstagramContext _context;
+    private readonly UserManager<User> _userManager;
 
-    public PostsController(InstagramContext ctx, UserManager<User> um)
+    public PostsController(InstagramContext context, UserManager<User> userManager)
     {
-        _ctx = ctx; _um = um;
+        _context = context; 
+        _userManager = userManager;
     }
 
     [HttpGet]
@@ -36,7 +37,7 @@ public class PostsController : Controller
         var path = Path.Combine(root, fileName);
         using (var fs = new FileStream(path, FileMode.Create)) { await image.CopyToAsync(fs); }
 
-        var user = await _um.GetUserAsync(User);
+        var user = await _userManager.GetUserAsync(User);
 
         var post = new Post
         {
@@ -47,9 +48,9 @@ public class PostsController : Controller
             CommentsCount = 0
         };
 
-        _ctx.Posts.Add(post);
+        _context.Posts.Add(post);
         user.PostsCount += 1;
-        await _ctx.SaveChangesAsync();
+        await _context.SaveChangesAsync();
 
         return RedirectToAction("Details", new { id = post.Id });
     }
@@ -57,12 +58,41 @@ public class PostsController : Controller
     [AllowAnonymous]
     public async Task<IActionResult> Details(int id)
     {
-        var post = await _ctx.Posts
+        var post = await _context.Posts
             .Include(p => p.User)
             .Include(p => p.Comments).ThenInclude(c => c.User)
             .FirstOrDefaultAsync(p => p.Id == id);
         if (post == null) return NotFound();
         post.Comments = post.Comments?.OrderBy(c => c.CreatedAt).ToList();
         return View(post);
+    }
+    
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var me = await _userManager.GetUserAsync(User);
+        var post = await _context.Posts.FirstOrDefaultAsync(p => p.Id == id && p.UserId == me.Id);
+        if (post == null)
+            return Json(new { success = false, message = "Пост не найден или не принадлежит вам" });
+
+        _context.Posts.Remove(post);
+        await _context.SaveChangesAsync();
+        return Json(new { success = true });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditDescription(int id, string newDescription)
+    {
+        var me = await _userManager.GetUserAsync(User);
+        var post = await _context.Posts.FirstOrDefaultAsync(p => p.Id == id && p.UserId == me.Id);
+        if (post == null)
+            return Json(new { success = false, message = "Пост не найден или не принадлежит вам" });
+
+        post.Description = newDescription;
+        await _context.SaveChangesAsync();
+
+        return Json(new { success = true, newText = post.Description });
     }
 }
