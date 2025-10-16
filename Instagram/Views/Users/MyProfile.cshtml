@@ -37,16 +37,35 @@
 
         <div class="card-body">
             <h4>Мои публикации</h4>
+            <a asp-controller="Posts" asp-action="Create">Добавить пост</a>
+
             @if (posts != null && posts.Any())
             {
                 <div class="row">
                     @foreach (var post in posts)
                     {
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-4 mb-3 text-center" id="post-@post.Id">
                             <a asp-controller="Posts" asp-action="Details" asp-route-id="@post.Id">
-                                <img src="@post.ImagePath" class="img-fluid rounded" 
+                                <img src="@post.ImagePath" class="img-fluid rounded mb-2"
                                      style="height:200px; object-fit:cover;" />
                             </a>
+                            
+                            <form id="editForm-@post.Id" class="mb-2">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" id="postId-@post.Id" value="@post.Id" />
+                                <div class="input-group input-group-sm">
+                                    <input type="text" id="descInput-@post.Id" class="form-control"
+                                           value="@post.Description" placeholder="Новое описание" />
+                                    <button type="button" class="btn btn-outline-primary"
+                                            onclick="editPost(@post.Id)">ОК</button>
+                                </div>
+                            </form>
+                            
+                            <form id="deleteForm-@post.Id">
+                                @Html.AntiForgeryToken()
+                                <button type="button" class="btn btn-outline-danger btn-sm"
+                                        onclick="deletePost(@post.Id)">Удалить</button>
+                            </form>
                         </div>
                     }
                 </div>
@@ -58,3 +77,54 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        function getToken(formId) {
+            return document.querySelector(`#${formId} input[name="__RequestVerificationToken"]`).value;
+        }
+        
+        function editPost(id) {
+            const newDesc = document.getElementById(`descInput-${id}`).value;
+            const token = getToken(`editForm-${id}`);
+
+            $.ajax({
+                url: '/Posts/EditDescription',
+                method: 'POST',
+                data: { id: id, newDescription: newDesc, __RequestVerificationToken: token },
+                success: function (res) {
+                    if (res.success) {
+                        alert('Описание обновлено!');
+                    } else {
+                        alert(res.message);
+                    }
+                },
+                error: function () {
+                    alert('Ошибка при редактировании.');
+                }
+            });
+        }
+
+        function deletePost(id) {
+            if (!confirm('Удалить публикацию?')) return;
+            const token = getToken(`deleteForm-${id}`);
+
+            $.ajax({
+                url: '/Posts/Delete',
+                method: 'POST',
+                data: { id: id, __RequestVerificationToken: token },
+                success: function (res) {
+                    if (res && res.success) {
+                        $(`#post-${id}`).remove();
+                    } else {
+                        alert(res && res.message ? res.message : 'Ошибка при удалении');
+                    }
+                },
+                error: function () {
+                    alert('Ошибка при удалении');
+                }
+            });
+        }
+
+    </script>
+}
