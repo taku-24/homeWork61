@@ -7,50 +7,59 @@ using Microsoft.EntityFrameworkCore;
 [Authorize]
 public class FollowController : Controller
 {
-    private readonly InstagramContext _ctx;
-    private readonly UserManager<User> _um;
-    public FollowController(InstagramContext ctx, UserManager<User> um) { _ctx = ctx; _um = um; }
+    private readonly InstagramContext _context;
+    private readonly UserManager<User> _userManager;
+    public FollowController(InstagramContext context, UserManager<User> userManager)
+    {
+        _context = context;
+        _userManager = userManager;
+    }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> FollowUUser(int userId)
+    public async Task<IActionResult> FollowUser(int userId)
     {
-        var me = await _um.GetUserAsync(User);
-        if (me.Id == userId) return BadRequest("Нельзя подписаться на себя");
+        var me = await _userManager.GetUserAsync(User);
+        if (me.Id == userId)
+            return Json(new { success = false, message = "Нельзя подписаться на себя" });
 
-        var exists = await _ctx.Follows.AnyAsync(f => f.FollowerId == me.Id && f.FollowingId == userId);
-        if (exists) return RedirectToAction("Profile", "Users", new { id = userId });
+        var exists = await _context.Follows.AnyAsync(f => f.FollowerId == me.Id && f.FollowingId == userId);
+        if (exists)
+            return Json(new { success = false, message = "Уже подписаны" });
 
-        _ctx.Follows.Add(new Follow { FollowerId = me.Id, FollowingId = userId });
+        _context.Follows.Add(new Follow { FollowerId = me.Id, FollowingId = userId });
+        var target = await _context.Users.FindAsync(userId);
 
-        var target = await _ctx.Users.FindAsync(userId);
         if (target != null)
         {
-            me.FollowingCount += 1;
-            target.FollowersCount += 1;
+            me.FollowingCount++;
+            target.FollowersCount++;
         }
-        await _ctx.SaveChangesAsync();
 
-        return RedirectToAction("Profile", "Users", new { id = userId });
+        await _context.SaveChangesAsync();
+        return Json(new { success = true, following = true });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UnfollowUser(int userId)
     {
-        var me = await _um.GetUserAsync(User);
-        var follow = await _ctx.Follows.FirstOrDefaultAsync(f => f.FollowerId == me.Id && f.FollowingId == userId);
-        if (follow != null)
+        var me = await _userManager.GetUserAsync(User);
+        var follow = await _context.Follows.FirstOrDefaultAsync(f => f.FollowerId == me.Id && f.FollowingId == userId);
+
+        if (follow == null)
+            return Json(new { success = false, message = "Не подписаны" });
+
+        _context.Follows.Remove(follow);
+
+        var target = await _context.Users.FindAsync(userId);
+        if (target != null)
         {
-            _ctx.Follows.Remove(follow);
-            var target = await _ctx.Users.FindAsync(userId);
-            if (target != null)
-            {
-                me.FollowingCount = Math.Max(0, me.FollowingCount - 1);
-                target.FollowersCount = Math.Max(0, target.FollowersCount - 1);
-            }
-            await _ctx.SaveChangesAsync();
+            me.FollowingCount = Math.Max(0, me.FollowingCount - 1);
+            target.FollowersCount = Math.Max(0, target.FollowersCount - 1);
         }
-        return RedirectToAction("Profile", "Users", new { id = userId });
+
+        await _context.SaveChangesAsync();
+        return Json(new { success = true, following = false });
     }
 }
