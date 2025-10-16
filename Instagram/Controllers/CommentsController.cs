@@ -8,9 +8,14 @@ namespace Instagram.Controllers;
 [Authorize]
 public class CommentsController : Controller
 {
-    private readonly InstagramContext _ctx;
-    private readonly UserManager<User> _um;
-    public CommentsController(InstagramContext ctx, UserManager<User> um) { _ctx = ctx; _um = um; }
+    private readonly InstagramContext _context;
+    private readonly UserManager<User> _userManager;
+
+    public CommentsController(InstagramContext context, UserManager<User> userManager)
+    {
+        _context = context; 
+        _userManager = userManager;
+    }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -19,11 +24,11 @@ public class CommentsController : Controller
         if (string.IsNullOrWhiteSpace(content))
             return RedirectToAction("Index", "Home");
 
-        var me = await _um.GetUserAsync(User);
-        var post = await _ctx.Posts.FindAsync(postId);
+        var me = await _userManager.GetUserAsync(User);
+        var post = await _context.Posts.FindAsync(postId);
         if (post == null) return NotFound();
 
-        _ctx.Comments.Add(new Comment
+        _context.Comments.Add(new Comment
         {
             PostId = postId,
             UserId = me.Id,
@@ -31,14 +36,14 @@ public class CommentsController : Controller
             CreatedAt = DateTime.UtcNow
         });
         post.CommentsCount++;
-        await _ctx.SaveChangesAsync();
+        await _context.SaveChangesAsync();
 
         return RedirectToAction("Index", "Home");
     }
     [HttpGet]
     public async Task<IActionResult> GetAll(int postId)
     {
-        var comments = await _ctx.Comments
+        var comments = await _context.Comments
             .Include(c => c.User)
             .Where(c => c.PostId == postId)
             .OrderBy(c => c.CreatedAt)
