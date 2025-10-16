@@ -14,15 +14,15 @@
 <body>
 <header class="navbar navbar-light bg-white border-bottom px-3">
     <div class="container-fluid d-flex justify-content-between align-items-center">
-        
+
         <a class="navbar-brand fw-bold" asp-controller="Home" asp-action="Index">
             Instagram
         </a>
-        
+
         <form asp-controller="Users" asp-action="Search" method="get" class="d-none d-md-block">
             <input type="text" name="q" class="form-control" placeholder="Поиск" style="width:250px;" />
         </form>
-        
+
         <div class="d-flex align-items-center">
             @if (User.Identity.IsAuthenticated)
             {
@@ -37,7 +37,7 @@
                              style="width:40px; height:40px; border-radius:50%; object-fit:cover;" />
                     </a>
                 }
-                
+
                 <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
                     @Html.AntiForgeryToken()
                     <button type="submit" class="btn btn-outline-danger">Выйти</button>
@@ -56,6 +56,8 @@
     @RenderBody()
 </main>
 
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 @RenderSection("Scripts", required: false)
 </body>
